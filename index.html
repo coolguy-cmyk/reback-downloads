@@ -3,48 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Website</title>
+  <title>Download Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
   <!-- Navbar -->
   <header class="bg-white shadow-md p-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold">MySite</h1>
+    <h1 class="text-xl font-bold">Download Hub</h1>
     <nav class="space-x-4">
-      <a href="#" class="hover:text-blue-500">Home</a>
-      <a href="#" class="hover:text-blue-500">About</a>
-      <a href="#" class="hover:text-blue-500">Contact</a>
+      <button onclick="showTab('downloads')" class="hover:text-blue-500">Downloads</button>
+      <button onclick="showTab('executor')" class="hover:text-blue-500">Executor</button>
+      <button onclick="showTab('upload')" class="hover:text-blue-500">Upload</button>
     </nav>
   </header>
 
-  <!-- Hero Section -->
-  <section class="text-center py-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-    <h2 class="text-4xl font-bold mb-4">Welcome to My Website</h2>
-    <p class="mb-6">A clean modern site built in one file</p>
-    <button class="bg-white text-blue-600 px-6 py-2 rounded-xl font-semibold hover:bg-gray-200">Get Started</button>
-  </section>
-
-  <!-- Features -->
-  <section class="p-10 grid md:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded-2xl shadow">
-      <h3 class="font-bold text-lg mb-2">Fast</h3>
-      <p>Lightweight and quick to load.</p>
-    </div>
-    <div class="bg-white p-6 rounded-2xl shadow">
-      <h3 class="font-bold text-lg mb-2">Simple</h3>
-      <p>Easy to edit and customize.</p>
-    </div>
-    <div class="bg-white p-6 rounded-2xl shadow">
-      <h3 class="font-bold text-lg mb-2">Modern</h3>
-      <p>Clean design using Tailwind.</p>
+  <!-- Downloads Tab -->
+  <section id="downloads" class="p-10">
+    <h2 class="text-2xl font-bold mb-6">Downloads</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-bold text-lg mb-2">Tool 1</h3>
+        <p class="mb-4">Description of download.</p>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-xl">Download</button>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-bold text-lg mb-2">Tool 2</h3>
+        <p class="mb-4">Another download item.</p>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-xl">Download</button>
+      </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="text-center p-6 bg-white shadow-inner">
-    <p>© 2026 MySite</p>
-  </footer>
+  <!-- Executor Tab -->
+  <section id="executor" class="p-10 hidden">
+    <h2 class="text-2xl font-bold mb-6">Executor</h2>
+    <textarea id="codeInput" class="w-full p-4 border rounded-xl mb-4" rows="6" placeholder="Enter code..."></textarea>
+    <button onclick="runCode()" class="bg-green-500 text-white px-6 py-2 rounded-xl">Run</button>
+    <pre id="output" class="mt-4 bg-black text-green-400 p-4 rounded-xl"></pre>
+  </section>
+
+  <!-- Upload Tab (Locked) -->
+  <section id="upload" class="p-10 hidden">
+    <div id="lockScreen">
+      <h2 class="text-2xl font-bold mb-4">Enter Password</h2>
+      <input type="password" id="passwordInput" class="p-2 border rounded-xl" placeholder="Password" />
+      <button onclick="checkPassword()" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-xl">Unlock</button>
+    </div>
+
+    <div id="uploadContent" class="hidden">
+      <h2 class="text-2xl font-bold mb-6">Upload File</h2>
+      <input type="file" class="mb-4" />
+      <button class="bg-purple-500 text-white px-4 py-2 rounded-xl">Upload</button>
+    </div>
+  </section>
+
+  <script>
+    function showTab(tab) {
+      document.getElementById('downloads').classList.add('hidden');
+      document.getElementById('executor').classList.add('hidden');
+      document.getElementById('upload').classList.add('hidden');
+      document.getElementById(tab).classList.remove('hidden');
+    }
+
+    async function runCode() {
+      const code = document.getElementById('codeInput').value;
+      const output = document.getElementById('output');
+      output.textContent = 'Running...';
+
+      try {
+        const res = await fetch('https://api.weao.xyz/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        output.textContent = data.output || JSON.stringify(data);
+      } catch (err) {
+        output.textContent = 'Error running code.';
+      }
+    }
+
+    function checkPassword() {
+      const input = document.getElementById('passwordInput').value;
+      if (input === 'iunnolovestea') {
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('uploadContent').classList.remove('hidden');
+      } else {
+        alert('Wrong password');
+      }
+    }
+  </script>
 
 </body>
 </html>
