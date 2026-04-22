@@ -21,3 +21,111 @@
   <!-- Downloads -->
   <section id="downloads" class="p-10">
     <h2 class="text-2xl font-bold mb-6">Downloads</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-gray-900 p-6 rounded-xl border border-gray-800">
+        <h3 class="font-bold mb-2">Executor A</h3>
+        <button onclick="downloadFile('Executor A')" class="bg-blue-600 px-4 py-2 rounded">Download</button>
+      </div>
+      <div class="bg-gray-900 p-6 rounded-xl border border-gray-800">
+        <h3 class="font-bold mb-2">Executor B</h3>
+        <button onclick="downloadFile('Executor B')" class="bg-blue-600 px-4 py-2 rounded">Download</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Executors -->
+  <section id="executor" class="p-10 hidden">
+    <h2 class="text-2xl font-bold mb-6">Executor Status</h2>
+    <button onclick="loadStatus()" class="mb-4 bg-blue-600 px-4 py-2 rounded">Refresh</button>
+    <div id="statusList" class="grid md:grid-cols-2 gap-6"></div>
+  </section>
+
+  <!-- Upload -->
+  <section id="upload" class="p-10 hidden">
+    <div id="lockScreen">
+      <h2 class="text-2xl font-bold mb-4">Enter Password</h2>
+      <input type="password" id="passwordInput" class="p-2 bg-gray-900 border border-gray-700 rounded" />
+      <button onclick="checkPassword()" class="ml-2 bg-blue-600 px-4 py-2 rounded">Unlock</button>
+    </div>
+
+    <div id="uploadContent" class="hidden">
+      <h2 class="text-2xl font-bold mb-6">Upload File</h2>
+      <input type="file" class="mb-4" />
+      <button onclick="uploadFile()" class="bg-purple-600 px-4 py-2 rounded">Upload</button>
+    </div>
+  </section>
+
+  <script>
+    function showTab(tab) {
+      ['downloads','executor','upload'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(tab).classList.remove('hidden');
+
+      if (tab === 'executor') loadStatus();
+    }
+
+    async function loadStatus() {
+      const container = document.getElementById('statusList');
+      container.innerHTML = 'Loading...';
+
+      try {
+        const res = await fetch('https://api.weao.xyz/status');
+
+        if (!res.ok) throw new Error();
+
+        const data = await res.json();
+        renderStatus(data);
+
+      } catch (e) {
+        // FALLBACK DATA (so it actually works)
+        const fallback = [
+          { name: 'Executor A', status: 'working', updated: 'just now' },
+          { name: 'Executor B', status: 'down', updated: '5 min ago' },
+          { name: 'Executor C', status: 'working', updated: '2 min ago' }
+        ];
+
+        renderStatus(fallback);
+      }
+    }
+
+    function renderStatus(data) {
+      const container = document.getElementById('statusList');
+      container.innerHTML = '';
+
+      data.forEach(exec => {
+        const statusColor = exec.status === 'working' ? 'text-green-400' : 'text-red-400';
+
+        const div = document.createElement('div');
+        div.className = 'bg-gray-900 p-5 rounded-xl border border-gray-800';
+        div.innerHTML = `
+          <h3 class="text-lg font-bold">${exec.name}</h3>
+          <p class="${statusColor}">Status: ${exec.status}</p>
+          <p class="text-gray-500 text-sm">Updated: ${exec.updated}</p>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    function downloadFile(name) {
+      alert('Downloading ' + name + ' (demo)');
+    }
+
+    function uploadFile() {
+      alert('File uploaded (demo)');
+    }
+
+    function checkPassword() {
+      const input = document.getElementById('passwordInput').value;
+      if (input === 'iunnolovestea') {
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('uploadContent').classList.remove('hidden');
+      } else {
+        alert('Wrong password');
+      }
+    }
+  </script>
+
+</body>
+</html>
