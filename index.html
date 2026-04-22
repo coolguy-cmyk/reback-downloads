@@ -6,15 +6,15 @@
   <title>Download Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-black text-gray-200">
 
   <!-- Navbar -->
-  <header class="bg-white shadow-md p-4 flex justify-between items-center">
+  <header class="bg-gray-950 border-b border-gray-800 p-4 flex justify-between items-center">
     <h1 class="text-xl font-bold">Download Hub</h1>
-    <nav class="space-x-4">
-      <button onclick="showTab('downloads')" class="hover:text-blue-500">Downloads</button>
-      <button onclick="showTab('executor')" class="hover:text-blue-500">Executor</button>
-      <button onclick="showTab('upload')" class="hover:text-blue-500">Upload</button>
+    <nav class="space-x-6">
+      <button onclick="showTab('downloads')" class="hover:text-blue-400">Downloads</button>
+      <button onclick="showTab('executor')" class="hover:text-blue-400">Executors</button>
+      <button onclick="showTab('upload')" class="hover:text-blue-400">Upload</button>
     </nav>
   </header>
 
@@ -22,39 +22,38 @@
   <section id="downloads" class="p-10">
     <h2 class="text-2xl font-bold mb-6">Downloads</h2>
     <div class="grid md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-2xl shadow">
-        <h3 class="font-bold text-lg mb-2">Tool 1</h3>
-        <p class="mb-4">Description of download.</p>
-        <button class="bg-blue-500 text-white px-4 py-2 rounded-xl">Download</button>
+      <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+        <h3 class="font-bold text-lg mb-2">Executor A</h3>
+        <p class="mb-4 text-gray-400">Fast and stable executor.</p>
+        <button class="bg-blue-600 px-4 py-2 rounded-xl">Download</button>
       </div>
-      <div class="bg-white p-6 rounded-2xl shadow">
-        <h3 class="font-bold text-lg mb-2">Tool 2</h3>
-        <p class="mb-4">Another download item.</p>
-        <button class="bg-blue-500 text-white px-4 py-2 rounded-xl">Download</button>
+      <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+        <h3 class="font-bold text-lg mb-2">Executor B</h3>
+        <p class="mb-4 text-gray-400">Lightweight version.</p>
+        <button class="bg-blue-600 px-4 py-2 rounded-xl">Download</button>
       </div>
     </div>
   </section>
 
-  <!-- Executor Tab -->
+  <!-- Executors Status Tab -->
   <section id="executor" class="p-10 hidden">
-    <h2 class="text-2xl font-bold mb-6">Executor</h2>
-    <textarea id="codeInput" class="w-full p-4 border rounded-xl mb-4" rows="6" placeholder="Enter code..."></textarea>
-    <button onclick="runCode()" class="bg-green-500 text-white px-6 py-2 rounded-xl">Run</button>
-    <pre id="output" class="mt-4 bg-black text-green-400 p-4 rounded-xl"></pre>
+    <h2 class="text-2xl font-bold mb-6">Executor Status</h2>
+
+    <div id="statusList" class="grid md:grid-cols-2 gap-6"></div>
   </section>
 
-  <!-- Upload Tab (Locked) -->
+  <!-- Upload Tab -->
   <section id="upload" class="p-10 hidden">
     <div id="lockScreen">
       <h2 class="text-2xl font-bold mb-4">Enter Password</h2>
-      <input type="password" id="passwordInput" class="p-2 border rounded-xl" placeholder="Password" />
-      <button onclick="checkPassword()" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-xl">Unlock</button>
+      <input type="password" id="passwordInput" class="p-2 bg-gray-900 border border-gray-700 rounded-xl" placeholder="Password" />
+      <button onclick="checkPassword()" class="ml-2 bg-blue-600 px-4 py-2 rounded-xl">Unlock</button>
     </div>
 
     <div id="uploadContent" class="hidden">
       <h2 class="text-2xl font-bold mb-6">Upload File</h2>
       <input type="file" class="mb-4" />
-      <button class="bg-purple-500 text-white px-4 py-2 rounded-xl">Upload</button>
+      <button class="bg-purple-600 px-4 py-2 rounded-xl">Upload</button>
     </div>
   </section>
 
@@ -64,23 +63,34 @@
       document.getElementById('executor').classList.add('hidden');
       document.getElementById('upload').classList.add('hidden');
       document.getElementById(tab).classList.remove('hidden');
+
+      if (tab === 'executor') loadStatus();
     }
 
-    async function runCode() {
-      const code = document.getElementById('codeInput').value;
-      const output = document.getElementById('output');
-      output.textContent = 'Running...';
+    async function loadStatus() {
+      const container = document.getElementById('statusList');
+      container.innerHTML = 'Loading...';
 
       try {
-        const res = await fetch('https://api.weao.xyz/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code })
-        });
+        const res = await fetch('https://api.weao.xyz/status');
         const data = await res.json();
-        output.textContent = data.output || JSON.stringify(data);
-      } catch (err) {
-        output.textContent = 'Error running code.';
+
+        container.innerHTML = '';
+        data.forEach(exec => {
+          const statusColor = exec.status === 'working' ? 'text-green-400' : 'text-red-400';
+
+          const div = document.createElement('div');
+          div.className = 'bg-gray-900 p-5 rounded-2xl border border-gray-800';
+          div.innerHTML = `
+            <h3 class="text-lg font-bold">${exec.name}</h3>
+            <p class="${statusColor} mt-2">Status: ${exec.status}</p>
+            <p class="text-gray-500 text-sm mt-1">Last updated: ${exec.updated || 'N/A'}</p>
+          `;
+
+          container.appendChild(div);
+        });
+      } catch {
+        container.innerHTML = 'Failed to load status.';
       }
     }
 
