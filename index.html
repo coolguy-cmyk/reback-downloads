@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Download Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weao Exploit Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -11,11 +11,11 @@
 
   <!-- NAV -->
   <header class="bg-gray-950 border-b border-gray-800 p-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold">Download Hub</h1>
+    <h1 class="text-xl font-bold">Weao Exploit Tracker</h1>
 
     <nav class="space-x-6">
       <button onclick="showTab('downloads')">Downloads</button>
-      <button onclick="showTab('executor')">Executors</button>
+      <button onclick="showTab('executor')">Exploits</button>
       <button onclick="showTab('upload')">Upload</button>
     </nav>
   </header>
@@ -24,32 +24,21 @@
   <section id="downloads" class="p-10">
     <h2 class="text-2xl font-bold mb-6">Downloads</h2>
 
-    <div class="grid md:grid-cols-2 gap-6">
-
-      <div class="bg-gray-900 p-6 rounded-xl border border-gray-800">
-        <h3 class="font-bold mb-2">No downloads available</h3>
-        <p class="text-gray-500 text-sm">This section is empty</p>
-
-        <!-- dead UI button -->
-        <button class="mt-4 bg-blue-600 px-4 py-2 rounded opacity-40 cursor-not-allowed">
-          Download
-        </button>
-      </div>
-
+    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800">
+      <p class="text-gray-400">No downloads configured.</p>
     </div>
   </section>
 
-  <!-- EXECUTOR STATUS -->
+  <!-- EXPLOITS / EXECUTOR TAB -->
   <section id="executor" class="p-10 hidden">
-    <h2 class="text-2xl font-bold mb-6">Executor Status</h2>
+    <h2 class="text-2xl font-bold mb-6">Live Exploit Status (weao.xyz)</h2>
 
     <div id="statusList" class="grid md:grid-cols-2 gap-6"></div>
   </section>
 
-  <!-- UPLOAD -->
+  <!-- UPLOAD (LOCKED / NON FUNCTIONAL) -->
   <section id="upload" class="p-10 hidden">
 
-    <!-- LOCK -->
     <div id="lockScreen">
       <h2 class="text-2xl font-bold mb-4">Enter Password</h2>
 
@@ -65,14 +54,12 @@
       </button>
     </div>
 
-    <!-- UPLOAD UI (NON FUNCTIONAL) -->
     <div id="uploadContent" class="hidden mt-8 opacity-60">
-
-      <h2 class="text-xl font-bold mb-4">Upload Executor</h2>
+      <h2 class="text-xl font-bold mb-4">Upload (disabled UI)</h2>
 
       <input
         type="text"
-        placeholder="Executor name (UI only)"
+        placeholder="Executor name"
         class="mb-3 p-2 w-full bg-gray-900 border border-gray-700 rounded"
       />
 
@@ -81,56 +68,60 @@
       <button class="bg-purple-700 px-4 py-2 rounded opacity-50 cursor-not-allowed">
         Upload
       </button>
-
     </div>
+
   </section>
 
 <script>
   function showTab(tab) {
-    document.getElementById('downloads').classList.add('hidden');
-    document.getElementById('executor').classList.add('hidden');
-    document.getElementById('upload').classList.add('hidden');
+    ['downloads','executor','upload'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
 
     document.getElementById(tab).classList.remove('hidden');
 
     if (tab === 'executor') {
-      loadStatus();
+      loadExploits();
     }
   }
 
-  async function loadStatus() {
+  async function loadExploits() {
     const container = document.getElementById('statusList');
     container.innerHTML = '';
 
-    let data;
-
     try {
       const res = await fetch('https://api.weao.xyz/status');
-      data = await res.json();
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        container.innerHTML = `<p class="text-gray-500">No exploit data available.</p>`;
+        return;
+      }
+
+      data.forEach(item => {
+        const color =
+          item.status === 'working'
+            ? 'text-green-400'
+            : item.status === 'down'
+            ? 'text-red-400'
+            : 'text-yellow-400';
+
+        const div = document.createElement('div');
+        div.className = 'bg-gray-900 p-5 rounded-xl border border-gray-800';
+
+        div.innerHTML = `
+          <h3 class="text-lg font-bold">${item.name || 'Unknown Exploit'}</h3>
+          <p class="${color}">Status: ${item.status || 'unknown'}</p>
+          <p class="text-gray-500 text-sm">Updated: ${item.updated || 'unknown'}</p>
+        `;
+
+        container.appendChild(div);
+      });
+
     } catch {
-      data = [
-        { name: 'Executor X', status: 'working', updated: 'just now' },
-        { name: 'Executor Y', status: 'down', updated: 'unknown' },
-        { name: 'Executor Z', status: 'working', updated: 'recent' }
-      ];
+      document.getElementById('statusList').innerHTML =
+        `<p class="text-red-400">Failed to load weao API data.</p>`;
     }
-
-    data.forEach(exec => {
-      const color = exec.status === 'working'
-        ? 'text-green-400'
-        : 'text-red-400';
-
-      const div = document.createElement('div');
-      div.className = 'bg-gray-900 p-5 rounded-xl border border-gray-800';
-
-      div.innerHTML = `
-        <h3 class="text-lg font-bold">${exec.name}</h3>
-        <p class="${color}">Status: ${exec.status}</p>
-        <p class="text-gray-500 text-sm">Updated: ${exec.updated}</p>
-      `;
-
-      container.appendChild(div);
-    });
   }
 
   function checkPassword() {
@@ -143,7 +134,7 @@
   }
 
   // default load
-  loadStatus();
+  loadExploits();
 </script>
 
 </body>
